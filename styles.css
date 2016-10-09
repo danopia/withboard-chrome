@@ -1,0 +1,31 @@
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
+#setup {
+  display: none;
+  text-align: center;
+  padding-top: 100px;
+}
+#setup > * {
+  display: block;
+  margin: 15px auto;
+  font-size: 4em;
+}
+#setup > button {
+  padding: 10px 25px;
+  font-size: 3em;
+}
+
+#loading {
+  text-align: center;
+  margin-top: 200px;
+  font-size: 5em;
+}
+
+webview {
+  width: 100%;
+  height: 99%;
+/*  height: 99.5%;*/
+}

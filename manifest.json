@@ -1,0 +1,29 @@
+{
+  "manifest_version": 2,
+  "name": "Withboard Display",
+  "short_name": "Withboard",
+  "description": "[NOT WHAT YOU ARE LOOKING FOR] Launches a new Withboard display as a window or kiosk view",
+  "version": "0.2.3",
+  "minimum_chrome_version": "38",
+
+  "kiosk_enabled" : true,
+
+  "icons": {
+    "16": "assets/icon_16.png",
+    "128": "assets/icon_128.png"
+  },
+  
+  "permissions": [
+    "power",
+    "webview",
+    "audioCapture",
+    "videoCapture",
+    "tts"
+  ],
+
+  "app": {
+    "background": {
+      "scripts": ["background.js"]
+    }
+  }
+}
