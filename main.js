@@ -1,3 +1,6 @@
+var domain = 'https://withboard.scopely.io';
+//var domain = 'http://localhost:3000';
+
 var config;
 var manifest = chrome.runtime.getManifest();
 var state = {
@@ -34,7 +37,7 @@ window.addEventListener('message', function(event) {
 
 	    updatePower();
 
-	    if (config['4up']) {
+	    if (config.fourUp) {
 	      enable4up();
 	    } else {
 	      disable4up();
@@ -101,7 +104,7 @@ window.onload = function() {
   loading.remove();
 
   //chrome.system.display.getInfo(function (display) {
-  setDomain('https://withboard.scopely.io');
+  setDomain();
   //setDomain('http://localhost:3000');
   //});
 	  
@@ -148,7 +151,7 @@ window.onunload = function() {
 };
 
 var webview;
-function setDomain(domain, id) {
+function setDomain() {
   var setup = document.querySelector('#setup');
   setup.remove();
   
@@ -165,7 +168,6 @@ function setDomain(domain, id) {
   document.body.appendChild(webview);
 }
 
-var domain = 'https://withboard.scopely.io';
 function buildExtraView(pane) {
   var view = document.createElement('webview');
   view.addEventListener('loadstop', function () {
