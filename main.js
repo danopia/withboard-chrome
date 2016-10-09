@@ -31,7 +31,15 @@ window.addEventListener('message', function(event) {
 	  case 'config':
 	    config = event.data.config;
 	    console.log('Updated config:', config);
+
 	    updatePower();
+
+	    if (config['4up']) {
+	      enable4up();
+	    } else {
+	      disable4up();
+	    }
+
 	    window.onresize();
 	    break;
 	 
@@ -153,8 +161,45 @@ function setDomain(domain, id) {
     });
   }
   webview.partition = 'persist:withboarddisplay';
-  webview.src = domain + '/display?id=' + id;
+  webview.src = domain + '/display';
   document.body.appendChild(webview);
+}
+
+var domain = 'https://withboard.scopely.io';
+function buildExtraView(pane) {
+  var view = document.createElement('webview');
+  view.addEventListener('loadstop', function () {
+    webview.setZoomMode('per-view');
+    window.onresize();
+  });
+  
+  view.partition = 'persist:withboarddisplay';
+  view.src = domain + '/display?pane=' + pane;
+  return view;
+}
+
+var extraViews = [];
+function enable4up() {
+  if (extraViews.length) {
+    return;
+  }
+  
+  extraViews.push(buildExtraView('topRight'));
+  extraViews.push(buildExtraView('bottomLeft'));
+  extraViews.push(buildExtraView('bottomRight'));
+  
+  document.body.classList.add('fourup');
+  extraViews.forEach(view => {
+    document.body.appendChild(view);
+  });
+}
+
+function disable4up() {
+  extraViews.forEach(view => {
+    view.remove();
+  });
+  document.body.classList.remove('fourup');
+  extraViews = [];
 }
 
 function showSetup() {
@@ -181,10 +226,16 @@ window.onresize = function() {
   } else {
     ratio = document.body.clientWidth / 1280;
   }
+  if (extraViews.length) {
+    ratio /= 2;
+  }
   
   if (webview) {
     webview.setZoom(ratio);
   }
+  extraViews.forEach(view => {
+    view.setZoom(ratio);
+  });
   
   setState('screenSize', {
     width: document.body.clientWidth,
