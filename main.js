@@ -166,6 +166,7 @@ function setDomain() {
   webview.partition = 'persist:withboarddisplay';
   webview.src = domain + '/display';
   document.body.appendChild(webview);
+  webview.focus();
 }
 
 function buildExtraView(pane) {
