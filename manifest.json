@@ -3,7 +3,7 @@
   "name": "Withboard Display",
   "short_name": "Withboard",
   "description": "[NOT WHAT YOU ARE LOOKING FOR] Launches a new Withboard display as a window or kiosk view",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "minimum_chrome_version": "38",
 
   "kiosk_enabled" : true,
@@ -15,6 +15,7 @@
 
   "permissions": [
     "power",
+    "system.display",
     "webview",
     "audioCapture",
     "videoCapture",

@@ -15,7 +15,7 @@ var state = {
 function setState(key, val) {
   console.log('Setting state', key);
   state[key] = val;
-  
+
   if (webview && webview.contentWindow) {
   	webview.contentWindow.postMessage({
   		command: 'state',
@@ -29,7 +29,7 @@ window.addEventListener('message', function(event) {
 	if (event.data.constructor !== Object) return;
 	if (!event.data.command) return;
 	console.log('Received message:', event.data);
-	
+
 	switch (event.data.command) {
 	  case 'config':
 	    config = event.data.config;
@@ -45,14 +45,14 @@ window.addEventListener('message', function(event) {
 
 	    window.onresize();
 	    break;
-	 
+
 	  case 'getState':
   		webview.contentWindow.postMessage({
   			command: 'state',
   			fields: state
 	  	}, '*');
       break;
-	 
+
 	  case 'reboot':
 	    console.log('Resetting the device (kiosk only)');
 	    chrome.runtime.restart();
@@ -64,7 +64,7 @@ window.addEventListener('message', function(event) {
 function updatePower() {
   var now = new Date();
   var on = true;
-  
+
   // array of hour, minute
   if (config.onAfter) {
     if (now.getHours() < config.onAfter[0]) {
@@ -74,7 +74,7 @@ function updatePower() {
       on = false;
     }
   }
-  
+
   // array of hour, minute
   if (config.offAfter) {
     if (now.getHours() > config.offAfter[0]) {
@@ -84,7 +84,7 @@ function updatePower() {
       on = false;
     }
   }
-  
+
   // array of day numbers to turn off for the entirety of
   if (config.daysOff) {
     if (config.daysOff.indexOf(now.getDay()) > -1) {
@@ -107,10 +107,10 @@ window.onload = function() {
   setDomain();
   //setDomain('http://localhost:3000');
   //});
-	  
+
   chrome.power.requestKeepAwake('display');
 
-  // Report some system states  
+  // Report some system states
   chrome.runtime.onUpdateAvailable.addListener(function (details) {
     setState('updateAvailable', details);
   });
@@ -126,7 +126,7 @@ window.onload = function() {
 			command: 'startup'
 		}, '*');
   });
-  
+
   // Support video capture if desired
   webview.addEventListener('permissionrequest', function(e) {
     if (e.permission === 'media') {
@@ -134,7 +134,7 @@ window.onload = function() {
       setState('mediaRequested', new Date());
     }
   });
-  
+
   /*
     chrome.storage.local.get('domain', function (settings) {
       if (settings.domain) {
@@ -150,11 +150,14 @@ window.onunload = function() {
   chrome.power.releaseKeepAwake();
 };
 
+const appWin = chrome.app.window.current();
+const partition = 'persist:withboard' + appWin.id;
+
 var webview;
 function setDomain() {
   var setup = document.querySelector('#setup');
   setup.remove();
-  
+
   if (!webview) {
     webview = document.createElement('webview');
     webview.addEventListener('loadstop', function () {
@@ -163,7 +166,7 @@ function setDomain() {
       window.onresize();
     });
   }
-  webview.partition = 'persist:withboarddisplay';
+  webview.partition = partition;
   webview.src = domain + '/display';
   document.body.appendChild(webview);
   webview.focus();
@@ -175,8 +178,8 @@ function buildExtraView(pane) {
     webview.setZoomMode('per-view');
     window.onresize();
   });
-  
-  view.partition = 'persist:withboarddisplay';
+
+  view.partition = partition;
   view.src = domain + '/display?pane=' + pane;
   return view;
 }
@@ -186,11 +189,11 @@ function enable4up() {
   if (extraViews.length) {
     return;
   }
-  
+
   extraViews.push(buildExtraView('topRight'));
   extraViews.push(buildExtraView('bottomLeft'));
   extraViews.push(buildExtraView('bottomRight'));
-  
+
   document.body.classList.add('fourup');
   extraViews.forEach(view => {
     document.body.appendChild(view);
@@ -212,18 +215,18 @@ function showSetup() {
 
   setup.addEventListener('submit', function (event) {
     event.preventDefault();
-    
+
     chrome.storage.local.set({domain: domainBox.value}, function () {
       setDomain(domainBox.value);
     });
   });
-  
+
   domainBox.focus();
 }
 
 window.onresize = function() {
   var ratio;
-  
+
   if (config && config.zoom) {
     ratio = config.zoom;
   } else {
@@ -232,14 +235,14 @@ window.onresize = function() {
   if (extraViews.length) {
     ratio /= 2;
   }
-  
+
   if (webview) {
     webview.setZoom(ratio);
   }
   extraViews.forEach(view => {
     view.setZoom(ratio);
   });
-  
+
   setState('screenSize', {
     width: document.body.clientWidth,
     height: document.body.clientHeight,
