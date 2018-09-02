@@ -17,47 +17,47 @@ function setState(key, val) {
   state[key] = val;
 
   if (webview && webview.contentWindow) {
-  	webview.contentWindow.postMessage({
-  		command: 'state',
-  		fields: state
-  	}, '*');
+    webview.contentWindow.postMessage({
+      command: 'state',
+      fields: state
+    }, '*');
   }
 }
 
 window.addEventListener('message', function(event) {
-	if (event.source === event.target) return;
-	if (event.data.constructor !== Object) return;
-	if (!event.data.command) return;
-	console.log('Received message:', event.data);
+  if (event.source === event.target) return;
+  if (event.data.constructor !== Object) return;
+  if (!event.data.command) return;
+  console.log('Received message:', event.data);
 
-	switch (event.data.command) {
-	  case 'config':
-	    config = event.data.config;
-	    console.log('Updated config:', config);
+  switch (event.data.command) {
+    case 'config':
+      config = event.data.config;
+      console.log('Updated config:', config);
 
-	    updatePower();
+      updatePower();
 
-	    if (config.fourUp) {
-	      enable4up();
-	    } else {
-	      disable4up();
-	    }
+      if (config.fourUp) {
+        enable4up();
+      } else {
+        disable4up();
+      }
 
-	    window.onresize();
-	    break;
-
-	  case 'getState':
-  		webview.contentWindow.postMessage({
-  			command: 'state',
-  			fields: state
-	  	}, '*');
+      window.onresize();
       break;
 
-	  case 'reboot':
-	    console.log('Resetting the device (kiosk only)');
-	    chrome.runtime.restart();
-	    break;
-	}
+    case 'getState':
+      webview.contentWindow.postMessage({
+        command: 'state',
+        fields: state
+      }, '*');
+      break;
+
+    case 'reboot':
+      console.log('Resetting the device (kiosk only)');
+      chrome.runtime.restart();
+      break;
+  }
 });
 
 // Regular check on what power state should be
@@ -65,30 +65,32 @@ function updatePower() {
   var now = new Date();
   var on = true;
 
-  // array of hour, minute
-  if (config.onAfter) {
-    if (now.getHours() < config.onAfter[0]) {
-      on = false;
+  if (config) {
+    // array of hour, minute
+    if (config.onAfter) {
+      if (now.getHours() < config.onAfter[0]) {
+        on = false;
+      }
+      if (now.getHours() === config.onAfter[0] && now.getMinutes() < config.onAfter[1]) {
+        on = false;
+      }
     }
-    if (now.getHours() === config.onAfter[0] && now.getMinutes() < config.onAfter[1]) {
-      on = false;
-    }
-  }
 
-  // array of hour, minute
-  if (config.offAfter) {
-    if (now.getHours() > config.offAfter[0]) {
-      on = false;
+    // array of hour, minute
+    if (config.offAfter) {
+      if (now.getHours() > config.offAfter[0]) {
+        on = false;
+      }
+      if (now.getHours() === config.offAfter[0] && now.getMinutes() > config.offAfter[1]) {
+        on = false;
+      }
     }
-    if (now.getHours() === config.offAfter[0] && now.getMinutes() > config.offAfter[1]) {
-      on = false;
-    }
-  }
 
-  // array of day numbers to turn off for the entirety of
-  if (config.daysOff) {
-    if (config.daysOff.indexOf(now.getDay()) > -1) {
-      on = false;
+    // array of day numbers to turn off for the entirety of
+    if (config.daysOff) {
+      if (config.daysOff.indexOf(now.getDay()) > -1) {
+        on = false;
+      }
     }
   }
 
@@ -122,9 +124,11 @@ window.onload = function() {
   });
 
   webview.addEventListener("loadstop", function(event) {
-		webview.contentWindow.postMessage({
-			command: 'startup'
-		}, '*');
+    setTimeout(function() {
+      webview.contentWindow.postMessage({
+        command: 'startup'
+      }, '*');
+    }, 3000);
   });
 
   // Support video capture if desired
@@ -146,9 +150,10 @@ window.onload = function() {
   */
 };
 
-window.onunload = function() {
-  chrome.power.releaseKeepAwake();
-};
+// TODO: onunload not allowed
+//window.onunload = function() {
+//  chrome.power.releaseKeepAwake();
+//};
 
 const appWin = chrome.app.window.current();
 const partition = 'persist:withboard' + appWin.id;
