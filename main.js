@@ -124,12 +124,16 @@ window.onload = function() {
   });
 
   webview.addEventListener("loadstop", function(event) {
-    setTimeout(function() {
-      webview.contentWindow.postMessage({
-        command: 'startup'
-      }, '*');
-    }, 3000);
+    webview.contentWindow.postMessage({
+      command: 'startup'
+    }, '*');
   });
+
+  setTimeout(function() {
+    webview.contentWindow.postMessage({
+      command: 'startup'
+    }, '*');
+  }, 5000);
 
   // Support video capture if desired
   webview.addEventListener('permissionrequest', function(e) {
