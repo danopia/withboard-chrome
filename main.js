@@ -6,7 +6,6 @@ var manifest = chrome.runtime.getManifest();
 var state = {
   app: {
     version: manifest.version,
-    permissions: manifest.permissions,
   },
   displayOn: true,
   launchDate: new Date(),
@@ -15,14 +14,33 @@ var state = {
 function setState(key, val) {
   console.log('Setting state', key);
   state[key] = val;
+}
 
+// Regularly transmit our state to the application
+setInterval(async function() {
+
+  // fetch select system statistics into state
+  state.memory = await callAsPromise(chrome.system.memory.getInfo);
+  const cpuInfo = await callAsPromise(chrome.system.cpu.getInfo);
+  state.cpu = {
+    modelName: cpuInfo.modelName,
+    temperatures: cpuInfo.temperatures,
+    usage: cpuInfo.processors.reduce((totals, p) => {
+      for (key in p.usage) {
+        totals[key] += p.usage[key];
+      }
+      return totals;
+    }, {idle: 0, kernel: 0, total: 0, user: 0}),
+  };
+
+  // pass state if possible
   if (webview && webview.contentWindow) {
     webview.contentWindow.postMessage({
       command: 'state',
       fields: state
     }, '*');
   }
-}
+}, 30 * 1000);
 
 window.addEventListener('message', function(event) {
   if (event.source === event.target) return;
@@ -99,7 +117,8 @@ function updatePower() {
   setState('displayOn', on);
   chrome.power.requestKeepAwake(on ? 'display' : 'system');
 }
-setInterval(updatePower, 30 * 1000); // Every minute
+updatePower();
+setInterval(updatePower, 60 * 1000); // Every minute
 
 window.onload = function() {
   var loading = document.querySelector('#loading');
@@ -257,3 +276,10 @@ window.onresize = function() {
     height: document.body.clientHeight,
   });
 };
+
+function callAsPromise(func, ...args) {
+  return new Promise((resolve, reject) => {
+    args.push(resolve);
+    func.apply(null, args);
+  })
+}
