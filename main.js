@@ -18,6 +18,9 @@ function setState(key, val) {
   state[key] = val;
 }
 
+// Assume healthy at launch
+var lastHeartbeat = new Date;
+
 // Regularly transmit our state to the application
 setInterval(async function() {
 
@@ -48,7 +51,7 @@ window.addEventListener('message', function(event) {
   if (event.source === event.target) return;
   if (event.data.constructor !== Object) return;
   if (!event.data.command) return;
-  console.log('Received message:', event.data);
+  console.log('Received message:', event.data.command);
 
   switch (event.data.command) {
     case 'config':
@@ -73,12 +76,32 @@ window.addEventListener('message', function(event) {
       }, '*');
       break;
 
+    case 'heartbeat':
+      lastHeartbeat = new Date;
+      break;
+
     case 'reboot':
       console.log('Resetting the device (kiosk only)');
       chrome.runtime.restart();
       break;
   }
 });
+
+// Monitor presence of 'online' heartbeats from the guest application
+function checkHeartbeat() {
+  const msSinceHealthy = new Date() - lastHeartbeat;
+
+  // Like half an hour of being offline
+  if (msSinceHealthy > 30 * 60 * 1000) {
+    // Looks like we haven't been online. Go postal
+    console.log('Automatically resetting the device due to stalled heartbeat (kiosk only)');
+    chrome.runtime.restart();
+    // Consider us healthy again, so we can relax for a bit if restarts aren't working
+    lastHeartbeat = new Date;
+  }
+}
+// check every few minutes
+setInterval(checkHeartbeat, 5 * 60 * 1000);
 
 // Regular check on what power state should be
 function updatePower() {
