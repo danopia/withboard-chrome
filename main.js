@@ -146,17 +146,21 @@ window.onload = function() {
     setState('platformInfo', platform);
   });
 
-  webview.addEventListener("loadstop", function(event) {
-    webview.contentWindow.postMessage({
-      command: 'startup'
-    }, '*');
+  webview.addEventListener("exit", function(event) {
+    // FIXME: We could try reloading the guest, but we might have multiple panes
+    setTimeout(function() {
+      console.log('Automatically resetting the device due to exited page (kiosk only)');
+      chrome.runtime.restart();
+    }, 15000);
   });
 
-  setTimeout(function() {
-    webview.contentWindow.postMessage({
-      command: 'startup'
-    }, '*');
-  }, 5000);
+  webview.addEventListener("contentload", function(event) {
+    setTimeout(function() {
+      webview.contentWindow.postMessage({
+        command: 'startup'
+      }, '*');
+    }, 5000);
+  });
 
   // Support video capture if desired
   webview.addEventListener('permissionrequest', function(e) {
