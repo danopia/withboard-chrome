@@ -9,6 +9,8 @@ var state = {
   },
   displayOn: true,
   launchDate: new Date(),
+  updateAvailable: false,
+  restartRequired: false,
 };
 
 function setState(key, val) {
@@ -113,8 +115,10 @@ function updatePower() {
   }
 
   // Manage device power level
-  console.log('Display keepawake:', on);
-  setState('displayOn', on);
+  if (state['displayOn'] !== on) {
+    console.log('Display keepawake:', on);
+    setState('displayOn', on);
+  }
   chrome.power.requestKeepAwake(on ? 'display' : 'system');
 }
 updatePower();
