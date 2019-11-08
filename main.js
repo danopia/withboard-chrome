@@ -91,8 +91,8 @@ window.addEventListener('message', function(event) {
 function checkHeartbeat() {
   const msSinceHealthy = new Date() - lastHeartbeat;
 
-  // Like half an hour of being offline
-  if (msSinceHealthy > 30 * 60 * 1000) {
+  // Some large amount of time without server comms
+  if (msSinceHealthy > 6 * 60 * 60 * 1000) {
     // Looks like we haven't been online. Go postal
     console.log('Automatically resetting the device due to stalled heartbeat (kiosk only)');
     chrome.runtime.restart();
